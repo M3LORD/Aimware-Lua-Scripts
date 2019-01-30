@@ -6,8 +6,11 @@ I provided three example scripts that produce a message containing your current 
 Using these examples, you should be able to create your scripts. They are well-documented and easy to read.
 
 [cmd.fps.lua](cmd.fps.lua)
+
 [cmd.ping.lua](cmd.ping.lua)
+
 [cmd.urban.lua](cmd.urban.lua)
+
 
 ## Documentation
 ### bot.RegisterCommand(name, callback(player, message, raw))
