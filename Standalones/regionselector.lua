@@ -1,82 +1,76 @@
-local dataCentres = {
-    -- For unsetting
-    "\"\"",
+local guiElements = {};
+local current;
 
-    -- Europe
-    "ams", -- Amsterdam (EU West)
-    "fra", -- Frankfurt (EU West)
-    "lux", -- Luxembourg (EU West)
-    "par", -- Paris (EU West)
-    "waw", -- Warsaw (EU Central)
-    "mad", -- Madrid (EU South)
-
-    -- United Kingdom
-    "lhr", -- London (UK East)
-    "iad", -- Sterling (UK Central)
-
-    -- United States
-    "lax", -- Los Angeles (US West)
-    "atl", -- Atlanta (US Central)
-    "ord", -- Chicago (US Central)
-    "sea", -- Seattle (US North-West)
-
-    -- South America
-    "gru", -- Sao Paulo (SA West)
-    "lim", -- Peru (SA West)
-    "scl", -- Santiago (SA South-West)
-
-    -- Others
-    "bom", -- Bombay (India West)
-    "maa", -- Chennai (India South-East)
-
-    "hkg", -- Hong Kong (Asia East)
-    "sgp", -- Singapore (Asia South-East)
-
-    "dxb", -- Dubai (Middle-East)
-
-    "jnb", -- Johannesburg (South Africa)
-    "syd" -- Sydney (AU)
+local checkboxNames = {
+    ["\"\""] = "Automatic",
+    ["ams"] = "AMS: Amsterdam",
+    ["atl"] = "ATL: Atlanta",
+    ["bom"] = "BOM: Bombay",
+    ["dxb"] = "DXB: Dubai",
+    ["eat"] = "EAT: Moses Lake (old)",
+    ["fra"] = "FRA: Frankfurt",
+    ["ggru"] = "GGRU: Google Cloud SA-East",
+    ["ghel"] = "GHEL: Google Cloud EU-North",
+    ["gru"] = "GRU: Sao Paulo",
+    ["hkg"] = "HKG: Hong Kong",
+    ["iad"] = "IAD: Sterling",
+    ["jnb"] = "JNB: Johannesburg",
+    ["lax"] = "LAX: Los Angeles",
+    ["lhr"] = "LHR: London",
+    ["lim"] = "LIM: Lima",
+    ["lux"] = "LUX: Luxembourg",
+    ["maa"] = "MAA: Chennai",
+    ["mad"] = "MAD: Madrid",
+    ["man"] = "MAN: Manilla",
+    ["mwh"] = "MWH: Moses Lake",
+    ["okc"] = "OKC: Oklahoma City",
+    ["ord"] = "ORD: Chicago",
+    ["par"] = "PAR: Paris",
+    ["scl"] = "SCL: Santiago",
+    ["sea"] = "SEA: Seattle",
+    ["sgp"] = "SGP: Singapore",
+    ["sha"] = "SHA: Shanghai",
+    ["shb"] = "SHB: Shanghai Backbone",
+    ["sto"] = "STO: Stockholm (Kista)",
+    ["sto2"] = "STO2: Stockholm (Bromma)",
+    ["syd"] = "SYD: Sydney",
+    ["tyo"] = "TYO: Tokyo",
+    ["tyo1"] = "TYO1: Tokyo 2",
+    ["vie"] = "VIE: Vienna",
+    ["waw"] = "WAW: Warsaw",
 };
 
-local currentRegion = 0;
+local main_reference = gui.Reference("MISC", "GENERAL", "Main");
+local groupbox_reference = gui.Groupbox(main_reference, "Matchmaking Servers", 0, 250, 215, 175);
 
-local reference = gui.Reference("MISC", "GENERAL", "Main");
+guiElements["automatic"] = gui.Checkbox(groupbox_reference, "nex_matchmaking_server_automatic", "Automatic", 1);
+current = "automatic";
 
-local selection = gui.Combobox(
-    reference,
-    "nex_forceregion",
-    "Matchmaking Region",
+for k,v in pairs(checkboxNames) do
+    local value = false;
+    if(v ~= "Automatic") then
+        guiElements[k] = gui.Checkbox(groupbox_reference, "nex_matchmaking_server_"..k, v, 0);
+    end
+end
 
-    "Automatic",
-    "EU: Amsterdam (W)",
-    "EU: Frankfurt (W)",
-    "EU: Luxembourg (W)",
-    "EU: Paris (W)",
-    "EU: Warsaw (C)",
-    "EU: Madrid (S)",
-    "UK: London (E)",
-    "UK: Sterling (C)",
-    "US: Los Angeles (W)",
-    "US: Atlanta (C)",
-    "US: Chicago (C)",
-    "US: Seattle (NW)",
-    "SA: Sao Paulo (W)",
-    "SA: Peru (W)",
-    "SA: Santiago (SW)",
-    "IN: Bombay (W)",
-    "IN: Chennai (SE)",
-    "AS: Hong Kong (E)",
-    "AS: Singapore (SE)",
-    "ME: Dubai",
-    "AF: Johannesburg",
-    "AU: Sydney"
-);
+local last_region;
 
-callbacks.Register("Draw", "Nex.RS.Draw", function()
-    if(not entities.GetLocalPlayer()) then
-        if(currentRegion ~= selection:GetValue()+1) then 
-            client.Command("sdr ClientForceRelayCluster "..dataCentres[selection:GetValue()+1], true);
-            currentRegion = selection:GetValue()+1;
+callbacks.Register("Draw", function()
+    for k,checkbox in pairs(guiElements) do
+        if(checkbox:GetValue() and k ~= current) then
+            gui.SetValue("nex_matchmaking_server_"..current, 0);
+            current = k;
+        elseif (not checkbox:GetValue() and k == current) then
+            current = "automatic";
+            gui.SetValue("nex_matchmaking_server_automatic", 1);
+        end
+
+        if(checkbox:GetValue() and last_region ~= k) then
+            if(k == "automatic") then k = "\"\""; end
+            client.Command("sdr ClientForceRelayCluster "..k, true);
+            last_region = k;
         end
     end
-end);
+
+
+end)
